@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="uno.stan.myblogBack.mapper.TagMapper">
+
+    <select id="selectByIdGetName">
+        select tag_name from tags
+        <where>
+            <foreach collection="ids" item="id" separator="or">
+                id=#{id}
+            </foreach>
+        </where>
+
+    </select>
+    <select id="selectListById" resultType="uno.stan.myblogBack.entity.Tags">
+        select * from tags where id in
+                           <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                               #{id}
+                           </foreach>
+    </select>
+</mapper>

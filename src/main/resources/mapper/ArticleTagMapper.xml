@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="uno.stan.myblogBack.mapper.ArticleMapper">
+
+    <select id="pageQuery" resultType="uno.stan.myblogBack.vo.ArticleListVo">
+        SELECT DISTINCT a.*
+        FROM article a
+        JOIN article_tag at ON a.id = at.article_id
+        <where>
+            <if test="categoryId != null">
+                AND category_id = #{categoryId}
+            </if>
+            <if test="description != null and !description.isEmpty()">
+                AND description LIKE CONCAT('%', #{description}, '%')
+            </if>
+            <if test="title != null and !title.isEmpty()">
+                AND title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="startTime != null and endTime != null">
+                AND created_time BETWEEN #{startTime} AND #{endTime}
+            </if>
+            <if test="tagIds != null and tagIds.size() > 0">
+                AND at.tag_id IN
+                <foreach item="tagId" index="index" collection="tagIds" open="(" separator="," close=")">
+                    #{tagId}
+                </foreach>
+            </if>
+        </where>
+        order by a.created_time desc
+    </select>
+</mapper>
