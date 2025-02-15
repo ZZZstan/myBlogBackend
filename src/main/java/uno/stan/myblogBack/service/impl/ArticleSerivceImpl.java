@@ -76,7 +76,7 @@ public class ArticleSerivceImpl implements ArticleSerivce {
         ArticleVo articleVo=new ArticleVo();
         BeanUtils.copyProperties(article,articleVo);
 
-        articleMapper.addViews();
+        articleMapper.addViews(id);
 
         //根据分类id获得分类名字
         Category category = categoryMapper.selectById(article.getCategoryId());

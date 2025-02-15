@@ -16,8 +16,8 @@ import java.util.List;
 @Mapper
 public interface ArticleMapper extends BaseMapper<Article> {
 
-    @Update("update article set views = views+1")
-    void addViews();
+    @Update("update article set views = views+1 where id=#{id}")
+    void addViews(Long id);
 
     @Update("update article set likes = likes + 1 where id=#{id}")
     void increaseLike(Long id);
