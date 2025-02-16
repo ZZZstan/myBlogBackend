@@ -1,7 +1,6 @@
 package uno.stan.myblogBack.websocket;
 
 
-import jakarta.annotation.Resource;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uno.stan.myblogBack.service.WebService;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -45,10 +45,12 @@ public class WebSocketServer {
     public void onOpen(Session session, @PathParam("userId") String userId) {
         System.out.println("客户端：" + userId + "建立连接");
         sessionMap.put(userId, session);
+        //广播在线人数
         broadcastOnlineCount();
+        //获得最近的五十条聊天记录历史
         List<String> messageList=webService.getChatHistory();
         messageList.forEach(message->{
-            sendToAllClient("message",message);
+            sendToClient(userId,"message",message);
         });
     }
 
@@ -110,6 +112,34 @@ public class WebSocketServer {
     public void broadcastOnlineCount() {
         int onlineCount = sessionMap.size();
         sendToAllClient("system", String.valueOf(onlineCount)); // 广播在线人数
+    }
+
+    /**
+     * 向指定客户端发送消息
+     * @param userId  目标用户ID
+     * @param type    消息类型（例如 "message" 或 "system"）
+     * @param data    消息内容（根据类型决定是否转JSON）
+     * @return 是否发送成功
+     */
+    public void sendToClient(String userId, String type, String data) {
+        Session session = sessionMap.get(userId);
+        try {
+            // 构造与 sendToAllClient 一致的协议格式
+            String message;
+            if ("message".equals(type)) {
+                message = String.format("{\"type\": \"%s\", \"data\": %s}", type, data);
+            } else {
+                message = String.format("{\"type\": \"%s\", \"data\": \"%s\"}", type, data);
+            }
+
+            // 同步发送消息（确保线程安全）
+            synchronized (session) {
+                session.getBasicRemote().sendText(message);
+            }
+            System.out.println("已发送消息至用户 " + userId + " : " + message);
+        } catch (IOException e) {
+            System.err.println("向用户 " + userId + " 发送消息失败: " + e.getMessage());
+        }
     }
 
 }
